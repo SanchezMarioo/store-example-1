@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: forja
+      POSTGRES_PASSWORD: forja123
+      POSTGRES_DB: forjaurbana
+    volumes:
+      - forjaurbana_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  forjaurbana_data:
