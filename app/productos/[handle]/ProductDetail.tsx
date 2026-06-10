@@ -1,31 +1,43 @@
 'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { HttpTypes } from "@medusajs/types"
+import { useState } from 'react'
+import Link from 'next/link'
+import { HttpTypes } from '@medusajs/types'
+import { useCart } from '@/lib/cart-context'
 
 type Props = {
   product: HttpTypes.StoreProduct
 }
 
 export default function ProductDetail({ product }: Props) {
+  const { addItem, isLoading } = useCart()
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
+  const [added, setAdded] = useState(false)
 
   const hasOptions = (product.options?.length ?? 0) > 0
 
   const selectedVariant = hasOptions
-    ? product.variants?.find((variant) =>
-        variant.options?.every(
-          (optVal) => selectedOptions[optVal.option_id ?? ""] === optVal.value
+    ? product.variants?.find((v) =>
+        v.options?.every(
+          (opt) => selectedOptions[opt.option_id ?? ''] === opt.value
         )
       )
     : product.variants?.[0]
 
-  const price = selectedVariant?.calculated_price?.calculated_amount
-
   const allOptionsSelected =
     !hasOptions ||
     (product.options?.every((opt) => selectedOptions[opt.id] !== undefined) ?? false)
+
+  const price = selectedVariant?.calculated_price?.calculated_amount
+
+  const handleAddToCart = async () => {
+    if (!selectedVariant?.id || !allOptionsSelected) return
+    await addItem(selectedVariant.id)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
+  }
+
+  const buttonDisabled = isLoading || !allOptionsSelected || !selectedVariant
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] px-4 py-12 sm:px-8 lg:px-16">
@@ -41,7 +53,7 @@ export default function ProductDetail({ product }: Props) {
           {product.thumbnail ? (
             <img
               src={product.thumbnail}
-              alt={product.title ?? "Producto"}
+              alt={product.title ?? 'Producto'}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -60,8 +72,8 @@ export default function ProductDetail({ product }: Props) {
             {price != null
               ? `$${price.toFixed(2)}`
               : allOptionsSelected
-                ? "Consultar precio"
-                : "Selecciona una opción"}
+                ? 'Consultar precio'
+                : 'Selecciona una opción'}
           </p>
 
           {product.description && (
@@ -89,8 +101,8 @@ export default function ProductDetail({ product }: Props) {
                       }
                       className={`px-4 py-2 rounded-lg border text-sm font-bold transition-colors ${
                         isSelected
-                          ? "border-[#c2410c] bg-[#c2410c] text-white"
-                          : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+                          ? 'border-[#c2410c] bg-[#c2410c] text-white'
+                          : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'
                       }`}
                     >
                       {val.value}
@@ -102,9 +114,17 @@ export default function ProductDetail({ product }: Props) {
           ))}
 
           <button
-            className="mt-auto w-full bg-[#c2410c] hover:bg-[#9a3412] text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors"
+            onClick={handleAddToCart}
+            disabled={buttonDisabled}
+            className={`mt-auto w-full font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-all ${
+              added
+                ? 'bg-green-700 text-white'
+                : buttonDisabled
+                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                  : 'bg-[#c2410c] hover:bg-[#9a3412] text-white'
+            }`}
           >
-            Añadir al carrito
+            {isLoading ? 'Añadiendo...' : added ? '¡Añadido!' : 'Añadir al carrito'}
           </button>
         </div>
       </div>
