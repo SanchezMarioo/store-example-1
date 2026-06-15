@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { sdk } from '@/lib/medusa'
-import { getDefaultRegionId } from '@/lib/region'
+import { listProducts } from '@/lib/catalog'
 import { buttonPrimary } from '@/lib/ui'
 import ProductCard from './productos/ProductCard'
 
@@ -46,14 +45,7 @@ const TRUST = [
 ]
 
 export default async function Home() {
-  let products: Awaited<ReturnType<typeof sdk.store.product.list>>['products'] = []
-  try {
-    const regionId = await getDefaultRegionId()
-    const result = await sdk.store.product.list({ limit: 4, region_id: regionId })
-    products = result.products
-  } catch {
-    products = []
-  }
+  const products = await listProducts({ limit: 4 })
 
   return (
     <main className="flex-1">
