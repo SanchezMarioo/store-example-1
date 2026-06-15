@@ -1,0 +1,104 @@
+[
+  {
+    "id": "mock_prod_01",
+    "title": "Hoodie Cemento Drop 03",
+    "handle": "hoodie-cemento-drop-03",
+    "description": "Hoodie oversize 100% algodón 400g. Corte amplio, costuras reforzadas, acabado rugoso. Edición limitada a 50 unidades.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_01",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 89.95, "currency_code": "eur" }
+      }
+    ]
+  },
+  {
+    "id": "mock_prod_02",
+    "title": "Tee Ácido",
+    "handle": "tee-acido",
+    "description": "Camiseta algodón pesado 220g. Print serigrafía amarillo ácido. Cuello redondo con costuras en contraste.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_02",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 45.0, "currency_code": "eur" }
+      }
+    ]
+  },
+  {
+    "id": "mock_prod_03",
+    "title": "Pantalón Cargo Grafito",
+    "handle": "pantalon-cargo-grafito",
+    "description": "Cargo de sarga de algodón. Cintura ajustable, 6 bolsillos. Corte recto, tono grafito oscuro.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_03",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 115.0, "currency_code": "eur" }
+      }
+    ]
+  },
+  {
+    "id": "mock_prod_04",
+    "title": "Cap Drop 03",
+    "handle": "cap-drop-03",
+    "description": "Gorra 5 paneles en lona de algodón cemento. Bordado Grieta frontal. Cierre snapback.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_04",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 35.0, "currency_code": "eur" }
+      }
+    ]
+  },
+  {
+    "id": "mock_prod_05",
+    "title": "Hoodie Bone Oversize",
+    "handle": "hoodie-bone-oversize",
+    "description": "Hoodie oversize en tono hueso. Logotipo bordado en el pecho. 100% algodón orgánico 380g.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_05",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 95.0, "currency_code": "eur" }
+      }
+    ]
+  },
+  {
+    "id": "mock_prod_06",
+    "title": "Longsleeve Industrial",
+    "handle": "longsleeve-industrial",
+    "description": "Camiseta manga larga de punto liso 200g. Cuello alto, costuras planas. Tono cemento oscuro.",
+    "thumbnail": null,
+    "images": [],
+    "options": [],
+    "variants": [
+      {
+        "id": "mock_var_06",
+        "title": "Default",
+        "options": [],
+        "calculated_price": { "calculated_amount": 55.0, "currency_code": "eur" }
+      }
+    ]
+  }
+]
