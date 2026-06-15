@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { HttpTypes } from '@medusajs/types'
 import { updateCustomerAction, CustomerActionState } from '@/lib/customer-actions'
+import { alertError, alertSuccess, buttonPrimary, inputBase, labelCaption, spinnerSquare } from '@/lib/ui'
 
 type Props = {
   customer: HttpTypes.StoreCustomer
@@ -16,19 +17,19 @@ export default function CuentaForm({ customer }: Props) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {state.error && (
-        <p role="alert" className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-lg px-4 py-3">
+        <p role="alert" className={alertError}>
           {state.error}
         </p>
       )}
       {state.success && (
-        <p role="status" className="text-green-400 text-sm bg-green-950/30 border border-green-900 rounded-lg px-4 py-3">
-          Datos actualizados correctamente
+        <p role="status" className={alertSuccess}>
+          Datos actualizados correctamente.
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="firstName" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="firstName" className={labelCaption}>
             Nombre
           </label>
           <input
@@ -38,12 +39,12 @@ export default function CuentaForm({ customer }: Props) {
             required
             defaultValue={customer.first_name ?? ''}
             disabled={isPending}
-            className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
+            className={inputBase}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="lastName" className="text-zinc-400 text-xs uppercase tracking-widest">
-            Apellido
+        <div className="flex flex-col gap-2">
+          <label htmlFor="lastName" className={labelCaption}>
+            Apellidos
           </label>
           <input
             id="lastName"
@@ -51,26 +52,22 @@ export default function CuentaForm({ customer }: Props) {
             type="text"
             defaultValue={customer.last_name ?? ''}
             disabled={isPending}
-            className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
+            className={inputBase}
           />
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-zinc-400 text-xs uppercase tracking-widest">
-          Email
-        </label>
-        <div className="bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm">
+      <div className="flex flex-col gap-2">
+        <p className={labelCaption}>Email</p>
+        <div className="flex h-12 w-full items-center border-2 border-zinc-mid bg-cement px-4 text-base text-zinc-mid">
           {customer.email}
         </div>
+        <p className="text-xs text-zinc-mid">El email no se puede cambiar.</p>
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="mt-2 w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors"
-      >
-        {isPending ? 'Guardando...' : 'Guardar cambios'}
+      <button type="submit" disabled={isPending} className={`${buttonPrimary} mt-2 h-12 w-full`}>
+        {isPending && <span aria-hidden className={spinnerSquare} />}
+        {isPending ? 'Guardando' : 'Guardar cambios'}
       </button>
     </form>
   )

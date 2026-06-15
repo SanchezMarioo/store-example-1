@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { HttpTypes } from '@medusajs/types'
+import { buttonPrimary, buttonSecondary } from '@/lib/ui'
 
 export default function PedidoConfirmadoPage() {
   const [order, setOrder] = useState<HttpTypes.StoreOrder | null>(null)
@@ -14,21 +16,21 @@ export default function PedidoConfirmadoPage() {
         setOrder(JSON.parse(raw))
         sessionStorage.removeItem('last_order')
       } catch {
-        // ignore
+        setOrder(null)
       }
     }
   }, [])
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-16">
-      <div className="max-w-lg w-full flex flex-col items-center gap-8 text-center">
-        <div className="w-20 h-20 rounded-full bg-[#c2410c]/20 flex items-center justify-center">
+    <main className="flex flex-1 items-center justify-center px-4 py-16">
+      <div className="flex w-full max-w-lg flex-col items-center gap-8 text-center">
+        <div className="flex h-16 w-16 items-center justify-center border-2 border-success text-success">
           <svg
-            width="40"
-            height="40"
+            width="32"
+            height="32"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#c2410c"
+            stroke="currentColor"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -37,50 +39,49 @@ export default function PedidoConfirmadoPage() {
           </svg>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h1 className="text-white font-black text-3xl sm:text-4xl uppercase tracking-tight">
+        <div className="flex flex-col gap-3">
+          <h1 className="font-display text-h2 uppercase tracking-tight text-ink">
             Pedido confirmado
           </h1>
           {order?.display_id && (
-            <p className="text-zinc-400 text-sm">
-              Pedido{' '}
-              <span className="text-[#c2410c] font-black">#{order.display_id}</span>
+            <p className="text-sm text-zinc-mid">
+              Pedido <span className="font-bold tabular-nums text-ink">#{order.display_id}</span>
             </p>
           )}
-          <p className="text-zinc-500 text-sm mt-1">
+          <p className="text-sm text-zinc-mid">
             Te enviaremos un email con los detalles cuando tu pedido esté en camino.
           </p>
         </div>
 
         {order?.items && order.items.length > 0 && (
-          <div className="w-full bg-zinc-900 rounded-2xl p-6 text-left flex flex-col gap-4">
-            <h2 className="text-white font-black text-xs uppercase tracking-widest">
+          <div className="flex w-full flex-col gap-4 border-2 border-ink bg-cement-light p-6 text-left">
+            <h2 className="text-caption font-bold uppercase tracking-widest text-ink">
               Tu pedido
             </h2>
             <ul className="flex flex-col gap-3">
               {order.items.map((item) => (
-                <li key={item.id} className="flex gap-3 items-center">
-                  <div className="w-12 h-12 bg-zinc-800 rounded-lg overflow-hidden shrink-0">
-                    {item.thumbnail ? (
-                      <img
+                <li key={item.id} className="flex items-center gap-3">
+                  <div className="relative aspect-3/4 w-12 shrink-0 overflow-hidden bg-cement">
+                    {item.thumbnail && (
+                      <Image
                         src={item.thumbnail}
                         alt={item.product_title ?? item.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="48px"
+                        className="object-cover"
                       />
-                    ) : (
-                      <div className="w-full h-full" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-bold truncate leading-snug">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-ink">
                       {item.product_title ?? item.title}
                     </p>
                     {item.variant_title && (
-                      <p className="text-zinc-500 text-xs">{item.variant_title}</p>
+                      <p className="text-xs text-zinc-mid">{item.variant_title}</p>
                     )}
-                    <p className="text-zinc-500 text-xs">×{item.quantity}</p>
+                    <p className="text-xs tabular-nums text-zinc-mid">×{item.quantity}</p>
                   </div>
-                  <span className="text-[#c2410c] font-black text-sm shrink-0">
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-ink">
                     ${(item.unit_price * item.quantity).toFixed(2)}
                   </span>
                 </li>
@@ -88,11 +89,11 @@ export default function PedidoConfirmadoPage() {
             </ul>
 
             {order.total != null && (
-              <div className="border-t border-zinc-800 pt-3 flex justify-between items-center">
-                <span className="text-white font-black uppercase tracking-wide text-xs">
+              <div className="flex items-center justify-between border-t-2 border-ink pt-3">
+                <span className="text-caption font-bold uppercase tracking-widest text-ink">
                   Total
                 </span>
-                <span className="text-[#c2410c] font-black text-lg">
+                <span className="text-lg font-bold tabular-nums text-ink">
                   ${order.total.toFixed(2)}
                 </span>
               </div>
@@ -100,17 +101,11 @@ export default function PedidoConfirmadoPage() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <Link
-            href="/pedidos"
-            className="flex-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors text-center"
-          >
+        <div className="flex w-full flex-col gap-3 sm:flex-row">
+          <Link href="/pedidos" className={`${buttonSecondary} h-12 flex-1`}>
             Ver mis pedidos
           </Link>
-          <Link
-            href="/productos"
-            className="flex-1 bg-[#c2410c] hover:bg-[#9a3412] text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors text-center"
-          >
+          <Link href="/productos" className={`${buttonPrimary} h-12 flex-1`}>
             Seguir comprando
           </Link>
         </div>

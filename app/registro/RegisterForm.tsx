@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { registerAction, AuthActionState } from '@/lib/auth-actions'
+import { alertError, buttonPrimary, inputBase, labelCaption, spinnerSquare } from '@/lib/ui'
 
 const initial: AuthActionState = { error: null, success: false }
 
@@ -11,14 +12,14 @@ export default function RegisterForm() {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {state.error && (
-        <p role="alert" className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-lg px-4 py-3">
+        <p role="alert" className={alertError}>
           {state.error}
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="firstName" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="firstName" className={labelCaption}>
             Nombre
           </label>
           <input
@@ -28,13 +29,12 @@ export default function RegisterForm() {
             required
             autoComplete="given-name"
             disabled={isPending}
-            className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-            placeholder="Carlos"
+            className={inputBase}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="lastName" className="text-zinc-400 text-xs uppercase tracking-widest">
-            Apellido
+        <div className="flex flex-col gap-2">
+          <label htmlFor="lastName" className={labelCaption}>
+            Apellidos
           </label>
           <input
             id="lastName"
@@ -42,14 +42,13 @@ export default function RegisterForm() {
             type="text"
             autoComplete="family-name"
             disabled={isPending}
-            className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-            placeholder="García"
+            className={inputBase}
           />
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="email" className={labelCaption}>
           Email
         </label>
         <input
@@ -59,13 +58,12 @@ export default function RegisterForm() {
           required
           autoComplete="email"
           disabled={isPending}
-          className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-          placeholder="tu@email.com"
+          className={inputBase}
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="password" className={labelCaption}>
           Contraseña
         </label>
         <input
@@ -76,17 +74,14 @@ export default function RegisterForm() {
           autoComplete="new-password"
           minLength={8}
           disabled={isPending}
-          className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-          placeholder="Mínimo 8 caracteres"
+          className={inputBase}
         />
+        <p className="text-xs text-zinc-mid">Mínimo 8 caracteres.</p>
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="mt-2 w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors"
-      >
-        {isPending ? 'Creando cuenta...' : 'Crear cuenta'}
+      <button type="submit" disabled={isPending} className={`${buttonPrimary} mt-2 h-12 w-full`}>
+        {isPending && <span aria-hidden className={spinnerSquare} />}
+        {isPending ? 'Creando cuenta' : 'Crear cuenta'}
       </button>
     </form>
   )

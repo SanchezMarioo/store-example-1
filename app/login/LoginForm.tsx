@@ -1,23 +1,25 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { loginAction, AuthActionState } from '@/lib/auth-actions'
+import { alertError, buttonPrimary, inputBase, labelCaption, spinnerSquare } from '@/lib/ui'
 
 const initial: AuthActionState = { error: null, success: false }
 
 export default function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initial)
+  const [showPassword, setShowPassword] = useState(false)
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {state.error && (
-        <p role="alert" className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-lg px-4 py-3">
+        <p role="alert" className={alertError}>
           {state.error}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="email" className={labelCaption}>
           Email
         </label>
         <input
@@ -27,33 +29,38 @@ export default function LoginForm() {
           required
           autoComplete="email"
           disabled={isPending}
-          className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-          placeholder="tu@email.com"
+          className={inputBase}
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-zinc-400 text-xs uppercase tracking-widest">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="password" className={labelCaption}>
           Contraseña
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          disabled={isPending}
-          className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-          placeholder="••••••••"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            autoComplete="current-password"
+            disabled={isPending}
+            className={`${inputBase} pr-20`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            className="absolute inset-y-0 right-0 px-4 text-caption font-bold uppercase tracking-widest text-zinc-mid transition duration-150 hover:text-ink"
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            {showPassword ? 'Ocultar' : 'Ver'}
+          </button>
+        </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="mt-2 w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors"
-      >
-        {isPending ? 'Entrando...' : 'Iniciar sesión'}
+      <button type="submit" disabled={isPending} className={`${buttonPrimary} mt-2 h-12 w-full`}>
+        {isPending && <span aria-hidden className={spinnerSquare} />}
+        {isPending ? 'Entrando' : 'Iniciar sesión'}
       </button>
     </form>
   )

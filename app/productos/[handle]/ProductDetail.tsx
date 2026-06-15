@@ -1,26 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { HttpTypes } from '@medusajs/types'
 import { useCart } from '@/lib/cart-context'
+import { buttonPrimary, labelCaption, spinnerSquare } from '@/lib/ui'
 
 type Props = {
   product: HttpTypes.StoreProduct
 }
 
+const accordionSummary =
+  'flex cursor-pointer list-none items-center justify-between py-4 text-sm font-bold uppercase tracking-wide text-ink [&::-webkit-details-marker]:hidden'
+
+const buttonAdded =
+  'flex items-center justify-center gap-3 border-2 border-ink bg-acid text-sm font-bold uppercase tracking-wide text-ink'
+
 export default function ProductDetail({ product }: Props) {
   const { addItem, isLoading } = useCart()
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [added, setAdded] = useState(false)
+  const [optionError, setOptionError] = useState(false)
+  const optionsRef = useRef<HTMLDivElement>(null)
+
+  const images =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.thumbnail
+        ? [{ id: 'thumbnail', url: product.thumbnail }]
+        : []
 
   const hasOptions = (product.options?.length ?? 0) > 0
 
   const selectedVariant = hasOptions
     ? product.variants?.find((v) =>
-        v.options?.every(
-          (opt) => selectedOptions[opt.option_id ?? ''] === opt.value
-        )
+        v.options?.every((opt) => selectedOptions[opt.option_id ?? ''] === opt.value)
       )
     : product.variants?.[0]
 
@@ -28,104 +43,149 @@ export default function ProductDetail({ product }: Props) {
     !hasOptions ||
     (product.options?.every((opt) => selectedOptions[opt.id] !== undefined) ?? false)
 
+  const unavailable = allOptionsSelected && !selectedVariant
+
   const price = selectedVariant?.calculated_price?.calculated_amount
 
-  const handleAddToCart = async () => {
-    if (!selectedVariant?.id || !allOptionsSelected) return
-    await addItem(selectedVariant.id)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
+  const selectOption = (optionId: string, value: string) => {
+    setOptionError(false)
+    setSelectedOptions((prev) => ({ ...prev, [optionId]: value }))
   }
 
-  const buttonDisabled = isLoading || !allOptionsSelected || !selectedVariant
+  const handleAddToCart = async () => {
+    if (!allOptionsSelected) {
+      setOptionError(true)
+      optionsRef.current?.focus()
+      return
+    }
+    if (!selectedVariant?.id) return
+    await addItem(selectedVariant.id)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1000)
+  }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-12 sm:px-8 lg:px-16">
-      <Link
-        href="/productos"
-        className="text-zinc-500 text-sm hover:text-white transition-colors mb-8 inline-block"
-      >
-        ← Volver al catálogo
-      </Link>
+    <main className="flex-1">
+      <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-16">
+        <Link
+          href="/productos"
+          className="text-caption font-bold uppercase tracking-widest text-zinc-mid transition duration-150 hover:text-ink"
+        >
+          ← Volver al drop
+        </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
-        <div className="aspect-square bg-zinc-900 rounded-xl overflow-hidden">
-          {product.thumbnail ? (
-            <img
-              src={product.thumbnail}
-              alt={product.title ?? 'Producto'}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-zinc-600">Sin imagen</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <h1 className="text-white font-black text-3xl sm:text-4xl uppercase tracking-tight leading-none">
-            {product.title}
-          </h1>
-
-          <p className="text-[#c2410c] font-black text-2xl">
-            {price != null
-              ? `$${price.toFixed(2)}`
-              : allOptionsSelected
-                ? 'Consultar precio'
-                : 'Selecciona una opción'}
-          </p>
-
-          {product.description && (
-            <p className="text-zinc-400 text-base leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          {product.options?.map((option) => (
-            <div key={option.id}>
-              <p className="text-zinc-400 text-xs uppercase tracking-widest mb-3">
-                {option.title}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {option.values?.map((val) => {
-                  const isSelected = selectedOptions[option.id] === val.value
-                  return (
-                    <button
-                      key={val.id}
-                      onClick={() =>
-                        setSelectedOptions((prev) => ({
-                          ...prev,
-                          [option.id]: val.value,
-                        }))
-                      }
-                      className={`px-4 py-2 rounded-lg border text-sm font-bold transition-colors ${
-                        isSelected
-                          ? 'border-[#c2410c] bg-[#c2410c] text-white'
-                          : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'
-                      }`}
-                    >
-                      {val.value}
-                    </button>
-                  )
-                })}
+        <div className="mt-8 grid gap-8 lg:grid-cols-[55fr_45fr] lg:gap-16">
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto lg:flex-col lg:overflow-visible">
+            {images.length > 0 ? (
+              images.map((image, index) => (
+                <div
+                  key={image.id}
+                  className="relative aspect-3/4 w-10/12 shrink-0 snap-center bg-cement-light lg:w-full"
+                >
+                  <Image
+                    src={image.url}
+                    alt={`${product.title ?? 'Producto'} — imagen ${index + 1}`}
+                    fill
+                    sizes="(min-width: 1024px) 55vw, 85vw"
+                    priority={index === 0}
+                    className="object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="flex aspect-3/4 w-full items-center justify-center bg-cement-light text-caption font-bold uppercase tracking-widest text-zinc-mid">
+                Sin imagen
               </div>
-            </div>
-          ))}
+            )}
+          </div>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={buttonDisabled}
-            className={`mt-auto w-full font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-all ${
-              added
-                ? 'bg-green-700 text-white'
-                : buttonDisabled
-                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-                  : 'bg-[#c2410c] hover:bg-[#9a3412] text-white'
-            }`}
-          >
-            {isLoading ? 'Añadiendo...' : added ? '¡Añadido!' : 'Añadir al carrito'}
-          </button>
+          <div className="flex flex-col gap-6 self-start lg:sticky lg:top-24">
+            <h1 className="font-display text-h2 uppercase leading-[0.9] tracking-tight text-ink lg:text-5xl">
+              {product.title}
+            </h1>
+
+            <p className="text-2xl font-bold tabular-nums text-ink">
+              {price != null
+                ? `$${price.toFixed(2)}`
+                : allOptionsSelected
+                  ? 'Consultar precio'
+                  : 'Selecciona una opción'}
+            </p>
+
+            {hasOptions && (
+              <div ref={optionsRef} tabIndex={-1} className="flex flex-col gap-6 focus:outline-none">
+                {product.options?.map((option) => (
+                  <div key={option.id} className="flex flex-col gap-3">
+                    <p className={labelCaption}>{option.title}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {option.values?.map((val) => {
+                        const isSelected = selectedOptions[option.id] === val.value
+                        return (
+                          <button
+                            key={val.id}
+                            type="button"
+                            onClick={() => selectOption(option.id, val.value)}
+                            className={`flex h-11 min-w-11 items-center justify-center border-2 border-ink px-3 text-sm font-bold uppercase transition duration-150 active:scale-[0.98] ${
+                              isSelected
+                                ? 'bg-ink text-bone'
+                                : 'bg-transparent text-ink hover:bg-ink hover:text-bone'
+                            }`}
+                          >
+                            {val.value}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {optionError && (
+                  <p role="alert" className="text-sm font-bold text-error">
+                    Selecciona una opción para continuar.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={isLoading || unavailable}
+              className={`${added ? buttonAdded : buttonPrimary} h-14 w-full`}
+            >
+              {isLoading && <span aria-hidden className={spinnerSquare} />}
+              {isLoading
+                ? 'Añadiendo'
+                : added
+                  ? 'Añadido ✓'
+                  : unavailable
+                    ? 'No disponible'
+                    : 'Añadir al carrito'}
+            </button>
+
+            <div className="border-b-2 border-ink">
+              {product.description && (
+                <details className="border-t-2 border-ink">
+                  <summary className={accordionSummary}>
+                    Descripción
+                    <span aria-hidden>+</span>
+                  </summary>
+                  <p className="pb-4 text-base leading-relaxed text-zinc-mid">
+                    {product.description}
+                  </p>
+                </details>
+              )}
+              <details className="border-t-2 border-ink">
+                <summary className={accordionSummary}>
+                  Envío y devoluciones
+                  <span aria-hidden>+</span>
+                </summary>
+                <p className="pb-4 text-base leading-relaxed text-zinc-mid">
+                  Envío a península en 24/48h laborables. Devoluciones gratuitas durante 30 días
+                  desde la entrega.
+                </p>
+              </details>
+            </div>
+          </div>
         </div>
       </div>
     </main>

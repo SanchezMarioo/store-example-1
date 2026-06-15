@@ -9,15 +9,33 @@ export type AuthActionState = {
   success: boolean
 }
 
-async function transferGuestCart(token: string): Promise<void> {
-  const cartId = await getCartCookie()
-  if (!cartId) return
-  try {
-    await sdk.store.cart.transferCart(cartId, undefined, {
-      Authorization: `Bearer ${token}`,
-    })
-  } catch {
-    // Non-blocking — login still succeeds if cart transfer fails
+async function syncCart(token: string): Promise<void> {
+  const headers = { Authorization: `Bearer ${token}` }
+  const cookieCartId = await getCartCookie()
+
+  if (cookieCartId) {
+    // Transferir el carrito guest al cliente y guardar el id en metadata
+    try {
+      await sdk.store.cart.transferCart(cookieCartId, undefined, headers)
+    } catch { /* no bloquea el login */ }
+    try {
+      await sdk.store.customer.update({ metadata: { cart_id: cookieCartId } }, undefined, headers)
+    } catch { /* no crítico */ }
+  } else {
+    // Nuevo dispositivo: recuperar el cart_id guardado en metadata
+    try {
+      const { customer } = await sdk.store.customer.retrieve(undefined, headers)
+      const savedCartId = (customer.metadata as Record<string, string> | null)?.cart_id
+      if (savedCartId) {
+        const { cookies } = await import('next/headers')
+        ;(await cookies()).set('medusa_cart_id', savedCartId, {
+          httpOnly: false,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30,
+        })
+      }
+    } catch { /* no crítico */ }
   }
 }
 
@@ -43,7 +61,7 @@ export async function loginAction(
       return { error: 'Credenciales incorrectas', success: false }
     }
     await setTokenCookie(result)
-    await transferGuestCart(result)
+    await syncCart(result)
     shouldRedirect = true
   } catch {
     return { error: 'Email o contraseña incorrectos', success: false }
@@ -89,7 +107,7 @@ export async function registerAction(
     }
 
     await setTokenCookie(result)
-    await transferGuestCart(result)
+    await syncCart(result)
     shouldRedirect = true
   } catch (err) {
     const msg = err instanceof Error ? err.message : ''

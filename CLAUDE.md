@@ -1,5 +1,5 @@
 @AGENTS.md
-# Forja Urbana — CLAUDE.md
+# GRIETA — CLAUDE.md
 
 ## Stack
 - Backend: Medusa.js v2 + PostgreSQL en Railway
@@ -8,11 +8,15 @@
 - Pagos: Stripe plugin oficial de Medusa
 
 ## Identidad visual
-- Fondo: negro (#0a0a0a)
-- Acento: naranja quemado (#c2410c)
-- Texto: blanco y gris claro
-- Tipografía: Inter, títulos en bold/black
-- Estilo: dark streetwear, limpio, sin decoración excesiva
+Concepto "Hormigón y ácido". Fuente de verdad: design-system/MASTER.md
+(si existe design-system/pages/<página>.md, tiene prioridad).
+
+- Fondo base: gris cemento (#E5E4DF), secciones oscuras en grafito (#141414)
+- Texto: tinta (#0E0E0E) sobre claro, hueso (#FAFAF7) sobre oscuro
+- Acento único: amarillo ácido (#D8E000), nunca como color de texto sobre fondo claro
+- Tipografía: Anton (títulos, uppercase) + Epilogue (cuerpo), vía next/font
+- Estilo: brutalismo streetwear — radio 0px, bordes 2px, sin sombras difusas, inversión en hover
+- Usar siempre clases de token (bg-cement, text-ink, bg-acid...), prohibido hex suelto
 
 ## Reglas de código
 - const por defecto, let solo si el valor cambia

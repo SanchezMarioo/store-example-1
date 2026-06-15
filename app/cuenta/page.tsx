@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getTokenCookie } from '@/lib/cookies'
 import { sdk } from '@/lib/medusa'
+import AccountNav from '@/components/AccountNav'
 import CuentaForm from './CuentaForm'
 
 export default async function CuentaPage() {
@@ -18,13 +19,17 @@ export default async function CuentaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-12 sm:px-8 lg:px-16">
-      <div className="max-w-lg">
-        <h1 className="text-white font-black text-3xl sm:text-4xl uppercase tracking-tight mb-2">
-          Mi cuenta
-        </h1>
-        <p className="text-zinc-500 text-sm mb-10">{customer.email}</p>
-        <CuentaForm customer={customer} />
+    <main className="flex-1">
+      <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+        <h1 className="font-display text-h2 uppercase tracking-tight text-ink">Mi cuenta</h1>
+        <p className="mt-2 text-sm text-zinc-mid">{customer.email}</p>
+
+        <div className="mt-10 flex flex-col gap-10 lg:flex-row">
+          <AccountNav />
+          <div className="max-w-lg flex-1">
+            <CuentaForm customer={customer} />
+          </div>
+        </div>
       </div>
     </main>
   )

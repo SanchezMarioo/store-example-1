@@ -1,5 +1,7 @@
-import { getTokenCookie } from '@/lib/cookies'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getTokenCookie } from '@/lib/cookies'
+import AuthSidePanel from '@/components/AuthSidePanel'
 import RegisterForm from './RegisterForm'
 
 export default async function RegistroPage() {
@@ -7,19 +9,25 @@ export default async function RegistroPage() {
   if (token) redirect('/cuenta')
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <h1 className="text-white font-black text-3xl uppercase tracking-tight mb-2">
-          Crear cuenta
-        </h1>
-        <p className="text-zinc-500 text-sm mb-8">
-          ¿Ya tienes cuenta?{' '}
-          <a href="/login" className="text-[#c2410c] hover:underline">
-            Inicia sesión
-          </a>
-        </p>
-        <RegisterForm />
-      </div>
+    <main className="grid flex-1 lg:grid-cols-2">
+      <AuthSidePanel />
+      <section className="flex items-center justify-center px-4 py-16 lg:px-8 lg:py-24">
+        <div className="w-full max-w-sm">
+          <h1 className="font-display text-[1.75rem] uppercase leading-[0.9] tracking-tight text-ink lg:text-h2">
+            Crear cuenta
+          </h1>
+          <p className="mb-8 mt-4 text-zinc-mid">
+            ¿Ya tienes cuenta?{' '}
+            <Link
+              href="/login"
+              className="font-bold text-ink underline decoration-acid decoration-2 underline-offset-4 transition duration-150 hover:bg-acid"
+            >
+              Inicia sesión
+            </Link>
+          </p>
+          <RegisterForm />
+        </div>
+      </section>
     </main>
   )
 }

@@ -7,7 +7,8 @@ import {
   useElements,
 } from '@stripe/react-stripe-js'
 import { HttpTypes } from '@medusajs/types'
-import { sdk } from '@/lib/medusa'
+import { completeCartAction } from '@/lib/checkout-actions'
+import { alertError, buttonPrimary, spinnerSquare } from '@/lib/ui'
 
 type Props = {
   cart: HttpTypes.StoreCart
@@ -41,7 +42,7 @@ export default function StepPayment({ cart, onComplete }: Props) {
       }
 
       if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'requires_capture') {
-        const result = await sdk.store.cart.complete(cart.id)
+        const result = await completeCartAction(cart.id)
         if (result.type === 'order') {
           onComplete(result.order)
         } else {
@@ -58,30 +59,25 @@ export default function StepPayment({ cart, onComplete }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {error && (
-        <p role="alert" className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-xl px-4 py-3">
+        <p role="alert" className={alertError}>
           {error}
         </p>
       )}
 
-      <div className="rounded-xl overflow-hidden">
-        <PaymentElement
-          options={{
-            layout: 'tabs',
-          }}
-        />
-      </div>
+      <PaymentElement options={{ layout: 'tabs' }} />
 
       <button
         type="submit"
         disabled={isLoading || !stripe || !elements}
-        className="w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors"
+        className={`${buttonPrimary} h-12 w-full tabular-nums`}
       >
-        {isLoading ? 'Procesando pago...' : `Pagar $${(cart.total ?? 0).toFixed(2)}`}
+        {isLoading && <span aria-hidden className={spinnerSquare} />}
+        {isLoading ? 'Procesando pago' : `Pagar $${(cart.total ?? 0).toFixed(2)}`}
       </button>
 
-      <p className="text-zinc-600 text-xs text-center flex items-center justify-center gap-1.5">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <rect x="3" y="11" width="18" height="11" rx="2" />
+      <p className="flex items-center justify-center gap-2 text-caption font-bold uppercase tracking-widest text-zinc-mid">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
         Pago seguro con encriptación SSL

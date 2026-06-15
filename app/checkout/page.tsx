@@ -8,8 +8,10 @@ import { HttpTypes } from '@medusajs/types'
 import Link from 'next/link'
 
 import { sdk } from '@/lib/medusa'
+import { completeCartAction } from '@/lib/checkout-actions'
 import { getCookieClient } from '@/lib/cookies-client'
 import { useCart } from '@/lib/cart-context'
+import { spinnerSquare } from '@/lib/ui'
 
 import OrderSummary from './OrderSummary'
 import StepShipping from './StepShipping'
@@ -21,13 +23,25 @@ const stripePromise = loadStripe(
 )
 
 const CHECKOUT_FIELDS =
-  '+region,+region.countries,+shipping_address,+shipping_methods,+payment_collection,+payment_collection.payment_sessions,+items,+items.thumbnail,+items.variant,+items.product'
+  '+region,+region.countries,+shipping_address,+shipping_methods,+payment_collection,+payment_collection.payment_sessions,+items,+items.thumbnail,+items.variant,+items.product,+promotions'
 
 type Step = 1 | 2 | 3
 
 type ShippingOption = HttpTypes.StoreCartShippingOptionWithServiceZone
 
 const STEPS = ['Envío', 'Entrega', 'Pago']
+
+const stripeAppearance = {
+  variables: {
+    colorPrimary: '#0E0E0E',
+    colorBackground: '#F2F1EC',
+    colorText: '#0E0E0E',
+    colorTextSecondary: '#52525B',
+    colorDanger: '#DC2626',
+    borderRadius: '0px',
+    fontFamily: 'Epilogue, system-ui, sans-serif',
+  },
+}
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -40,6 +54,15 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isLoadingPage, setIsLoadingPage] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
+
+  const handleOrderComplete = useCallback(
+    (order: HttpTypes.StoreOrder) => {
+      clearCart()
+      sessionStorage.setItem('last_order', JSON.stringify(order))
+      router.push('/pedido-confirmado')
+    },
+    [clearCart, router]
+  )
 
   const loadCart = useCallback(async () => {
     const cartId = searchParams.get('cart_id') ?? getCookieClient('medusa_cart_id')
@@ -76,7 +99,7 @@ export default function CheckoutPage() {
       const redirectStatus = searchParams.get('redirect_status')
       const redirectCartId = searchParams.get('cart_id')
       if (redirectStatus === 'succeeded' && redirectCartId) {
-        const result = await sdk.store.cart.complete(redirectCartId)
+        const result = await completeCartAction(redirectCartId)
         if (result.type === 'order') {
           handleOrderComplete(result.order)
         }
@@ -156,21 +179,15 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleOrderComplete = useCallback(
-    (order: HttpTypes.StoreOrder) => {
-      clearCart()
-      sessionStorage.setItem('last_order', JSON.stringify(order))
-      router.push('/pedido-confirmado')
-    },
-    [clearCart, router]
-  )
-
   if (pageError) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
-        <div className="text-center flex flex-col gap-4">
-          <p className="text-red-400">{pageError}</p>
-          <Link href="/carrito" className="text-[#c2410c] hover:underline text-sm">
+      <main className="flex flex-1 items-center justify-center px-4">
+        <div className="flex max-w-md flex-col gap-6 border-2 border-error bg-cement-light p-8">
+          <p className="text-sm font-bold text-error">{pageError}</p>
+          <Link
+            href="/carrito"
+            className="text-caption font-bold uppercase tracking-widest text-ink underline decoration-acid decoration-2 underline-offset-4 transition duration-150 hover:bg-acid"
+          >
             ← Volver al carrito
           </Link>
         </div>
@@ -180,110 +197,117 @@ export default function CheckoutPage() {
 
   if (isLoadingPage && !cart) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#c2410c] border-t-transparent rounded-full animate-spin" />
-          <p className="text-zinc-500 text-sm">Cargando checkout...</p>
+      <main className="flex flex-1 items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span aria-hidden className={`${spinnerSquare} h-5 w-5`} />
+          <p className="text-caption font-bold uppercase tracking-widest text-zinc-mid">
+            Cargando checkout
+          </p>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-10 sm:px-8 lg:px-16">
-      <Link
-        href="/carrito"
-        className="text-zinc-500 text-sm hover:text-white transition-colors mb-8 inline-block"
-      >
-        ← Volver al carrito
-      </Link>
+    <main className="flex-1">
+      <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+        <Link
+          href="/carrito"
+          className="text-caption font-bold uppercase tracking-widest text-zinc-mid transition duration-150 hover:text-ink"
+        >
+          ← Volver al carrito
+        </Link>
 
-      <div className="flex flex-col lg:flex-row gap-12 mt-2">
-        <div className="flex-1">
-          <div className="mb-8">
-            <nav className="flex gap-2 items-center" aria-label="Progreso del checkout">
+        <div className="mt-6 flex flex-col gap-8 lg:flex-row-reverse lg:gap-12">
+          <OrderSummary
+            cart={cart}
+            onCartUpdate={setCart}
+            promoFields={CHECKOUT_FIELDS}
+          />
+
+          <div className="flex-1">
+            <nav className="mb-8 flex flex-wrap items-center gap-2" aria-label="Progreso del checkout">
               {STEPS.map((label, i) => {
                 const stepNum = (i + 1) as Step
                 const isDone = step > stepNum
                 const isCurrent = step === stepNum
+                const indicator = isDone
+                  ? 'bg-ink text-bone'
+                  : isCurrent
+                    ? 'bg-acid text-ink'
+                    : 'bg-transparent text-zinc-mid'
                 return (
                   <div key={label} className="flex items-center gap-2">
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-colors ${
-                        isDone
-                          ? 'bg-green-700 text-white'
-                          : isCurrent
-                            ? 'bg-[#c2410c] text-white'
-                            : 'bg-zinc-800 text-zinc-500'
-                      }`}
-                    >
-                      {isDone ? '✓' : stepNum}
-                    </div>
-                    <span
-                      className={`text-xs font-bold uppercase tracking-widest ${
-                        isCurrent ? 'text-white' : isDone ? 'text-zinc-400' : 'text-zinc-600'
-                      }`}
-                    >
-                      {label}
-                    </span>
-                    {i < STEPS.length - 1 && (
-                      <div className="w-6 h-px bg-zinc-800 mx-1" />
+                    {isDone ? (
+                      <button
+                        type="button"
+                        onClick={() => setStep(stepNum)}
+                        className="flex items-center gap-2"
+                      >
+                        <span className={`flex h-7 w-7 items-center justify-center border-2 border-ink text-xs font-bold ${indicator}`}>
+                          ✓
+                        </span>
+                        <span className="text-caption font-bold uppercase tracking-widest text-zinc-mid transition duration-150 hover:text-ink">
+                          {label}
+                        </span>
+                      </button>
+                    ) : (
+                      <>
+                        <span className={`flex h-7 w-7 items-center justify-center border-2 border-ink text-xs font-bold ${indicator}`}>
+                          {stepNum}
+                        </span>
+                        <span
+                          className={`text-caption font-bold uppercase tracking-widest ${
+                            isCurrent ? 'text-ink' : 'text-zinc-mid'
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      </>
                     )}
+                    {i < STEPS.length - 1 && <span className="mx-1 h-0.5 w-6 bg-ink" />}
                   </div>
                 )
               })}
             </nav>
-          </div>
 
-          <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8">
-            <h2 className="text-white font-black text-lg uppercase tracking-tight mb-6">
-              {STEPS[step - 1]}
-            </h2>
+            <div className="border-2 border-ink bg-cement-light p-6 sm:p-8">
+              <h2 className="mb-6 font-display text-2xl uppercase tracking-tight text-ink">
+                {STEPS[step - 1]}
+              </h2>
 
-            {step === 1 && cart && (
-              <StepShipping cart={cart} onComplete={handleShippingComplete} />
-            )}
+              {step === 1 && cart && (
+                <StepShipping cart={cart} onComplete={handleShippingComplete} />
+              )}
 
-            {step === 2 && cart && (
-              <StepDelivery
-                cart={cart}
-                shippingOptions={shippingOptions}
-                onComplete={handleDeliveryComplete}
-              />
-            )}
+              {step === 2 && cart && (
+                <StepDelivery
+                  cart={cart}
+                  shippingOptions={shippingOptions}
+                  onComplete={handleDeliveryComplete}
+                />
+              )}
 
-            {step === 3 && cart && clientSecret && (
-              <Elements
-                stripe={stripePromise}
-                options={{
-                  clientSecret,
-                  appearance: {
-                    theme: 'night',
-                    variables: {
-                      colorPrimary: '#c2410c',
-                      colorBackground: '#18181b',
-                      colorText: '#ffffff',
-                      colorTextSecondary: '#a1a1aa',
-                      borderRadius: '12px',
-                      fontFamily: 'var(--font-geist), system-ui, sans-serif',
-                    },
-                  },
-                }}
-              >
-                <StepPayment cart={cart} onComplete={handleOrderComplete} />
-              </Elements>
-            )}
+              {step === 3 && cart && clientSecret && (
+                <Elements
+                  stripe={stripePromise}
+                  options={{ clientSecret, appearance: stripeAppearance }}
+                >
+                  <StepPayment cart={cart} onComplete={handleOrderComplete} />
+                </Elements>
+              )}
 
-            {step === 3 && cart && !clientSecret && (
-              <div className="flex items-center gap-3 text-zinc-500">
-                <div className="w-5 h-5 border-2 border-[#c2410c] border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm">Iniciando sesión de pago...</span>
-              </div>
-            )}
+              {step === 3 && cart && !clientSecret && (
+                <div className="flex items-center gap-3">
+                  <span aria-hidden className={spinnerSquare} />
+                  <span className="text-caption font-bold uppercase tracking-widest text-zinc-mid">
+                    Iniciando sesión de pago
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        <OrderSummary cart={cart} />
       </div>
     </main>
   )

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { HttpTypes } from '@medusajs/types'
 import { sdk } from '@/lib/medusa'
+import { alertError, buttonPrimary, spinnerSquare } from '@/lib/ui'
 
 type ShippingOption = HttpTypes.StoreCartShippingOptionWithServiceZone
 
@@ -38,19 +39,17 @@ export default function StepDelivery({ cart, shippingOptions, onComplete }: Prop
 
   if (shippingOptions.length === 0) {
     return (
-      <div className="flex flex-col gap-4">
-        <p className="text-zinc-500 text-sm">
-          No hay métodos de envío disponibles para esta dirección.
-          Verifica que la dirección sea correcta o contacta con soporte.
-        </p>
-      </div>
+      <p className="text-sm text-zinc-mid">
+        No hay métodos de envío disponibles para esta dirección. Verifica que la dirección sea
+        correcta o contacta con soporte.
+      </p>
     )
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
-        <p className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-xl px-4 py-3">
+        <p role="alert" className={alertError}>
           {error}
         </p>
       )}
@@ -62,13 +61,11 @@ export default function StepDelivery({ cart, shippingOptions, onComplete }: Prop
           return (
             <label
               key={option.id}
-              className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${
-                isSelected
-                  ? 'border-[#c2410c] bg-[#c2410c]/10'
-                  : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600'
+              className={`flex cursor-pointer items-center justify-between border-2 border-ink p-4 transition duration-150 ${
+                isSelected ? 'bg-ink text-bone' : 'bg-transparent text-ink hover:bg-ink hover:text-bone'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <span className="flex items-center gap-3">
                 <input
                   type="radio"
                   name="shippingOption"
@@ -76,11 +73,11 @@ export default function StepDelivery({ cart, shippingOptions, onComplete }: Prop
                   checked={isSelected}
                   onChange={() => setSelected(option.id)}
                   disabled={isLoading}
-                  className="accent-[#c2410c]"
+                  className="accent-acid"
                 />
-                <span className="text-white font-bold text-sm">{option.name}</span>
-              </div>
-              <span className="text-[#c2410c] font-black text-sm">
+                <span className="text-sm font-bold uppercase tracking-wide">{option.name}</span>
+              </span>
+              <span className="text-sm font-bold tabular-nums">
                 {price === 0 ? 'Gratis' : `$${price.toFixed(2)}`}
               </span>
             </label>
@@ -89,10 +86,12 @@ export default function StepDelivery({ cart, shippingOptions, onComplete }: Prop
       </div>
 
       <button
-        type="submit" disabled={isLoading || !selected}
-        className="w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors mt-2"
+        type="submit"
+        disabled={isLoading || !selected}
+        className={`${buttonPrimary} mt-2 h-12 w-full`}
       >
-        {isLoading ? 'Procesando...' : 'Continuar al pago →'}
+        {isLoading && <span aria-hidden className={spinnerSquare} />}
+        {isLoading ? 'Procesando' : 'Continuar al pago'}
       </button>
     </form>
   )

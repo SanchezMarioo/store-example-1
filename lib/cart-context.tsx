@@ -11,12 +11,15 @@ type CartContextType = {
   addItem: (variantId: string, quantity?: number) => Promise<void>
   updateItem: (lineItemId: string, quantity: number) => Promise<void>
   removeItem: (lineItemId: string) => Promise<void>
+  applyPromo: (code: string) => Promise<void>
+  removePromo: (code: string) => Promise<void>
   clearCart: () => void
 }
 
 const CartContext = createContext<CartContextType | null>(null)
 
-const FIELDS = '+items,+items.thumbnail,+items.variant,+items.product'
+const FIELDS =
+  '+items,+items.thumbnail,+items.variant,+items.product,+promotions'
 const CART_COOKIE = 'medusa_cart_id'
 
 function getCookieClient(name: string): string | undefined {
@@ -64,12 +67,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           cartId = fresh.id
         }
 
-        const { cart: updated } = await sdk.store.cart.createLineItem(
-          cartId,
-          { variant_id: variantId, quantity },
-          { fields: FIELDS }
-        )
-        setCart(updated)
+        try {
+          const { cart: updated } = await sdk.store.cart.createLineItem(
+            cartId,
+            { variant_id: variantId, quantity },
+            { fields: FIELDS }
+          )
+          setCart(updated)
+        } catch {
+          // Carrito expirado o inválido — crear uno nuevo e intentar de nuevo
+          deleteCookieClient(CART_COOKIE)
+          setCart(null)
+          const { cart: fresh } = await sdk.store.cart.create({})
+          setCookieClient(CART_COOKIE, fresh.id)
+          setCart(fresh)
+          const { cart: updated } = await sdk.store.cart.createLineItem(
+            fresh.id,
+            { variant_id: variantId, quantity },
+            { fields: FIELDS }
+          )
+          setCart(updated)
+        }
       } finally {
         setIsLoading(false)
       }
@@ -113,6 +131,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [cart]
   )
 
+  const applyPromo = useCallback(
+    async (code: string) => {
+      const trimmed = code.trim()
+      if (!cart || !trimmed) return
+      setIsLoading(true)
+      try {
+        const { cart: updated } = await sdk.store.cart.addPromotions(
+          cart.id,
+          { promo_codes: [trimmed] },
+          { fields: FIELDS }
+        )
+        setCart(updated)
+        const applied = updated.promotions?.some(
+          (p) => p.code?.toLowerCase() === trimmed.toLowerCase()
+        )
+        if (!applied) throw new Error('Código no válido o expirado')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [cart]
+  )
+
+  const removePromo = useCallback(
+    async (code: string) => {
+      if (!cart) return
+      setIsLoading(true)
+      try {
+        const { cart: updated } = await sdk.store.cart.removePromotions(
+          cart.id,
+          { promo_codes: [code] },
+          { fields: FIELDS }
+        )
+        setCart(updated)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [cart]
+  )
+
   const clearCart = useCallback(() => {
     setCart(null)
     deleteCookieClient(CART_COOKIE)
@@ -123,7 +182,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, itemCount, isLoading, addItem, updateItem, removeItem, clearCart }}
+      value={{ cart, itemCount, isLoading, addItem, updateItem, removeItem, applyPromo, removePromo, clearCart }}
     >
       {children}
     </CartContext.Provider>

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { HttpTypes } from '@medusajs/types'
 import { sdk } from '@/lib/medusa'
+import { listAddresses } from '@/lib/address-actions'
+import { alertError, buttonPrimary, inputBase, labelCaption, spinnerSquare } from '@/lib/ui'
 
 type Props = {
   cart: HttpTypes.StoreCart
@@ -35,9 +37,29 @@ export default function StepShipping({ cart, onComplete }: Props) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [savedAddresses, setSavedAddresses] = useState<HttpTypes.StoreCustomerAddress[]>([])
+
+  useEffect(() => {
+    listAddresses().then(setSavedAddresses).catch(() => {})
+  }, [])
 
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
+
+  const applySaved = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const addr = savedAddresses.find((a) => a.id === e.target.value)
+    if (!addr) return
+    setForm((prev) => ({
+      ...prev,
+      firstName: addr.first_name ?? '',
+      lastName: addr.last_name ?? '',
+      address1: addr.address_1 ?? '',
+      city: addr.city ?? '',
+      postalCode: addr.postal_code ?? '',
+      countryCode: addr.country_code ?? prev.countryCode,
+      phone: addr.phone ?? '',
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,88 +86,108 @@ export default function StepShipping({ cart, onComplete }: Props) {
     }
   }
 
-  const inputClass =
-    'bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors w-full'
-  const labelClass = 'text-zinc-400 text-xs uppercase tracking-widest mb-1 block'
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {error && (
-        <p className="text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-xl px-4 py-3">
+        <p role="alert" className={alertError}>
           {error}
         </p>
       )}
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="email" className={labelClass}>Email</label>
+      {savedAddresses.length > 0 && (
+        <div className="flex flex-col gap-2 border-2 border-ink bg-cement-light p-4">
+          <label htmlFor="savedAddress" className={labelCaption}>
+            Usar dirección guardada
+          </label>
+          <select
+            id="savedAddress"
+            defaultValue=""
+            onChange={applySaved}
+            disabled={isLoading}
+            className={inputBase}
+          >
+            <option value="" disabled>
+              Elige una dirección
+            </option>
+            {savedAddresses.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.first_name} {a.last_name} — {a.address_1}, {a.city}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="email" className={labelCaption}>Email</label>
         <input
           id="email" name="email" type="email" required
           value={form.email} onChange={set('email')} disabled={isLoading}
-          className={inputClass} placeholder="tu@email.com"
+          className={inputBase}
           autoComplete="email"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="firstName" className={labelClass}>Nombre</label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="firstName" className={labelCaption}>Nombre</label>
           <input
             id="firstName" name="firstName" type="text" required
             value={form.firstName} onChange={set('firstName')} disabled={isLoading}
-            className={inputClass} placeholder="Carlos"
+            className={inputBase}
             autoComplete="given-name"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="lastName" className={labelClass}>Apellido</label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="lastName" className={labelCaption}>Apellidos</label>
           <input
             id="lastName" name="lastName" type="text" required
             value={form.lastName} onChange={set('lastName')} disabled={isLoading}
-            className={inputClass} placeholder="García"
+            className={inputBase}
             autoComplete="family-name"
           />
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="address1" className={labelClass}>Dirección</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="address1" className={labelCaption}>Dirección</label>
         <input
           id="address1" name="address1" type="text" required
           value={form.address1} onChange={set('address1')} disabled={isLoading}
-          className={inputClass} placeholder="Calle Mayor 24, 3ºB"
+          className={inputBase}
           autoComplete="address-line1"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="city" className={labelClass}>Ciudad</label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="city" className={labelCaption}>Ciudad</label>
           <input
             id="city" name="city" type="text" required
             value={form.city} onChange={set('city')} disabled={isLoading}
-            className={inputClass} placeholder="Madrid"
+            className={inputBase}
             autoComplete="address-level2"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="postalCode" className={labelClass}>Código postal</label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="postalCode" className={labelCaption}>Código postal</label>
           <input
             id="postalCode" name="postalCode" type="text" required
             value={form.postalCode} onChange={set('postalCode')} disabled={isLoading}
-            className={inputClass} placeholder="28001"
+            className={inputBase}
             autoComplete="postal-code"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="countryCode" className={labelClass}>País</label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="countryCode" className={labelCaption}>País</label>
           {countries.length > 0 ? (
             <select
               id="countryCode" name="countryCode"
               value={form.countryCode} onChange={set('countryCode')} disabled={isLoading}
-              className={inputClass}
+              className={inputBase}
             >
               {countries.map((c) => (
                 <option key={c.iso_2} value={c.iso_2}>
@@ -157,27 +199,25 @@ export default function StepShipping({ cart, onComplete }: Props) {
             <input
               id="countryCode" name="countryCode" type="text" required
               value={form.countryCode} onChange={set('countryCode')} disabled={isLoading}
-              className={inputClass} placeholder="es"
+              className={inputBase}
               autoComplete="country"
             />
           )}
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="phone" className={labelClass}>Teléfono (opcional)</label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="phone" className={labelCaption}>Teléfono (opcional)</label>
           <input
             id="phone" name="phone" type="tel"
             value={form.phone} onChange={set('phone')} disabled={isLoading}
-            className={inputClass} placeholder="+34 600 000 000"
+            className={inputBase}
             autoComplete="tel"
           />
         </div>
       </div>
 
-      <button
-        type="submit" disabled={isLoading}
-        className="w-full bg-[#c2410c] hover:bg-[#9a3412] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black text-sm uppercase tracking-widest py-4 rounded-xl transition-colors mt-2"
-      >
-        {isLoading ? 'Guardando...' : 'Continuar con el envío →'}
+      <button type="submit" disabled={isLoading} className={`${buttonPrimary} mt-2 h-12 w-full`}>
+        {isLoading && <span aria-hidden className={spinnerSquare} />}
+        {isLoading ? 'Guardando' : 'Continuar con el envío'}
       </button>
     </form>
   )

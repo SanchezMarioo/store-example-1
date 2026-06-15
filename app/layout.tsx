@@ -1,15 +1,18 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Anton, Epilogue } from 'next/font/google'
 import { CartProvider } from '@/lib/cart-context'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 import { getTokenCookie } from '@/lib/cookies'
+import { getCategories } from '@/lib/catalog'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
+const anton = Anton({ weight: '400', subsets: ['latin'], variable: '--font-anton' })
+const epilogue = Epilogue({ subsets: ['latin'], variable: '--font-epilogue' })
 
 export const metadata: Metadata = {
-  title: 'Forja Urbana',
-  description: 'Streetwear urbano',
+  title: 'GRIETA — Streetwear',
+  description: 'Streetwear europeo. Sin temporadas, solo drops.',
 }
 
 export default async function RootLayout({
@@ -19,13 +22,15 @@ export default async function RootLayout({
 }) {
   const token = await getTokenCookie()
   const isAuthenticated = Boolean(token)
+  const categories = await getCategories()
 
   return (
-    <html lang="es" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#0a0a0a]">
+    <html lang="es" className={`${anton.variable} ${epilogue.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-cement text-ink font-body">
         <CartProvider>
-          <Header isAuthenticated={isAuthenticated} />
+          <Header isAuthenticated={isAuthenticated} categories={categories} />
           {children}
+          <Footer />
         </CartProvider>
       </body>
     </html>
