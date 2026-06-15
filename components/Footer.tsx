@@ -1,16 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
 const footerLink = 'text-sm text-zinc-soft transition duration-150 hover:text-acid'
-
 const columnTitle = 'text-caption font-bold uppercase tracking-widest text-zinc-soft'
 
 export default function Footer() {
-  const pathname = usePathname()
-  if (pathname === '/checkout') return null
-
   return (
     <footer className="border-t-2 border-ink bg-graphite text-bone">
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:grid-cols-3 lg:px-8">
@@ -22,24 +17,14 @@ export default function Footer() {
                 El drop
               </Link>
             </li>
-            <li>
-              <Link href="/carrito" className={footerLink}>
-                Carrito
-              </Link>
-            </li>
           </ul>
         </div>
         <div className="flex flex-col gap-4">
-          <p className={columnTitle}>Cuenta</p>
+          <p className={columnTitle}>Colecciones</p>
           <ul className="flex flex-col gap-2">
             <li>
-              <Link href="/cuenta" className={footerLink}>
-                Mi cuenta
-              </Link>
-            </li>
-            <li>
-              <Link href="/pedidos" className={footerLink}>
-                Mis pedidos
+              <Link href="/colecciones" className={footerLink}>
+                Ver todas
               </Link>
             </li>
           </ul>

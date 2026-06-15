@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Anton, Epilogue } from 'next/font/google'
-import { CartProvider } from '@/lib/cart-context'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { getTokenCookie } from '@/lib/cookies'
 import { getCategories } from '@/lib/catalog'
 import './globals.css'
 
@@ -20,18 +18,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const token = await getTokenCookie()
-  const isAuthenticated = Boolean(token)
   const categories = await getCategories()
 
   return (
     <html lang="es" className={`${anton.variable} ${epilogue.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-cement text-ink font-body">
-        <CartProvider>
-          <Header isAuthenticated={isAuthenticated} categories={categories} />
-          {children}
-          <Footer />
-        </CartProvider>
+        <Header categories={categories} />
+        {children}
+        <Footer />
       </body>
     </html>
   )

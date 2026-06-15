@@ -1,31 +1,18 @@
 import { notFound } from 'next/navigation'
-import { getCollectionByHandle, listProducts, ProductSort } from '@/lib/catalog'
+import { getCollectionByHandle, listProducts } from '@/lib/catalog'
 import ProductCard from '@/app/productos/ProductCard'
-import CatalogToolbar from '@/app/productos/CatalogToolbar'
-
-type SearchParams = {
-  q?: string
-  orden?: string
-}
 
 export default async function ColeccionPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ handle: string }>
-  searchParams: Promise<SearchParams>
 }) {
   const { handle } = await params
-  const { q, orden } = await searchParams
 
   const collection = await getCollectionByHandle(handle)
   if (!collection) notFound()
 
-  const products = await listProducts({
-    q,
-    collectionId: collection.id,
-    sort: (orden as ProductSort) || undefined,
-  })
+  const products = await listProducts({ collectionId: collection.id })
 
   return (
     <main className="flex-1">
@@ -39,14 +26,8 @@ export default async function ColeccionPage({
           </p>
         </div>
 
-        <div className="mt-8">
-          <CatalogToolbar />
-        </div>
-
         {products.length === 0 ? (
-          <p className="mt-16 text-zinc-mid">
-            No hay productos en esta colección por ahora.
-          </p>
+          <p className="mt-16 text-zinc-mid">No hay productos en esta colección por ahora.</p>
         ) : (
           <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
             {products.map((product) => (

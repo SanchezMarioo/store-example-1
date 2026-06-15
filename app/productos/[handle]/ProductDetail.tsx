@@ -1,11 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { HttpTypes } from '@medusajs/types'
-import { useCart } from '@/lib/cart-context'
-import { buttonPrimary, labelCaption, spinnerSquare } from '@/lib/ui'
+import { labelCaption } from '@/lib/ui'
 
 type Props = {
   product: HttpTypes.StoreProduct
@@ -14,15 +13,8 @@ type Props = {
 const accordionSummary =
   'flex cursor-pointer list-none items-center justify-between py-4 text-sm font-bold uppercase tracking-wide text-ink [&::-webkit-details-marker]:hidden'
 
-const buttonAdded =
-  'flex items-center justify-center gap-3 border-2 border-ink bg-acid text-sm font-bold uppercase tracking-wide text-ink'
-
 export default function ProductDetail({ product }: Props) {
-  const { addItem, isLoading } = useCart()
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
-  const [added, setAdded] = useState(false)
-  const [optionError, setOptionError] = useState(false)
-  const optionsRef = useRef<HTMLDivElement>(null)
 
   const images =
     product.images && product.images.length > 0
@@ -43,25 +35,10 @@ export default function ProductDetail({ product }: Props) {
     !hasOptions ||
     (product.options?.every((opt) => selectedOptions[opt.id] !== undefined) ?? false)
 
-  const unavailable = allOptionsSelected && !selectedVariant
-
   const price = selectedVariant?.calculated_price?.calculated_amount
 
   const selectOption = (optionId: string, value: string) => {
-    setOptionError(false)
     setSelectedOptions((prev) => ({ ...prev, [optionId]: value }))
-  }
-
-  const handleAddToCart = async () => {
-    if (!allOptionsSelected) {
-      setOptionError(true)
-      optionsRef.current?.focus()
-      return
-    }
-    if (!selectedVariant?.id) return
-    await addItem(selectedVariant.id)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1000)
   }
 
   return (
@@ -113,7 +90,7 @@ export default function ProductDetail({ product }: Props) {
             </p>
 
             {hasOptions && (
-              <div ref={optionsRef} tabIndex={-1} className="flex flex-col gap-6 focus:outline-none">
+              <div className="flex flex-col gap-6">
                 {product.options?.map((option) => (
                   <div key={option.id} className="flex flex-col gap-3">
                     <p className={labelCaption}>{option.title}</p>
@@ -138,29 +115,12 @@ export default function ProductDetail({ product }: Props) {
                     </div>
                   </div>
                 ))}
-                {optionError && (
-                  <p role="alert" className="text-sm font-bold text-error">
-                    Selecciona una opción para continuar.
-                  </p>
-                )}
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={isLoading || unavailable}
-              className={`${added ? buttonAdded : buttonPrimary} h-14 w-full`}
-            >
-              {isLoading && <span aria-hidden className={spinnerSquare} />}
-              {isLoading
-                ? 'Añadiendo'
-                : added
-                  ? 'Añadido ✓'
-                  : unavailable
-                    ? 'No disponible'
-                    : 'Añadir al carrito'}
-            </button>
+            <div className="flex h-14 w-full items-center justify-center border-2 border-ink bg-cement text-sm font-bold uppercase tracking-wide text-zinc-mid">
+              Próximamente disponible online
+            </div>
 
             <div className="border-b-2 border-ink">
               {product.description && (

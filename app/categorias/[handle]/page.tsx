@@ -1,31 +1,18 @@
 import { notFound } from 'next/navigation'
-import { getCategoryByHandle, listProducts, ProductSort } from '@/lib/catalog'
+import { getCategoryByHandle, listProducts } from '@/lib/catalog'
 import ProductCard from '@/app/productos/ProductCard'
-import CatalogToolbar from '@/app/productos/CatalogToolbar'
-
-type SearchParams = {
-  q?: string
-  orden?: string
-}
 
 export default async function CategoriaPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ handle: string }>
-  searchParams: Promise<SearchParams>
 }) {
   const { handle } = await params
-  const { q, orden } = await searchParams
 
   const category = await getCategoryByHandle(handle)
   if (!category) notFound()
 
-  const products = await listProducts({
-    q,
-    categoryId: category.id,
-    sort: (orden as ProductSort) || undefined,
-  })
+  const products = await listProducts({ categoryId: category.id })
 
   return (
     <main className="flex-1">
@@ -43,14 +30,8 @@ export default async function CategoriaPage({
           <p className="mt-6 max-w-2xl text-zinc-mid">{category.description}</p>
         )}
 
-        <div className="mt-8">
-          <CatalogToolbar />
-        </div>
-
         {products.length === 0 ? (
-          <p className="mt-16 text-zinc-mid">
-            No hay productos en esta categoría por ahora.
-          </p>
+          <p className="mt-16 text-zinc-mid">No hay productos en esta categoría por ahora.</p>
         ) : (
           <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
             {products.map((product) => (

@@ -1,28 +1,8 @@
-import { getCategories, getCategoryByHandle, listProducts, ProductSort } from '@/lib/catalog'
-import ProductCard from './ProductCard'
-import CatalogToolbar from './CatalogToolbar'
+import { listProducts } from '@/lib/catalog'
+import CatalogClientPage from './CatalogClientPage'
 
-type SearchParams = {
-  q?: string
-  categoria?: string
-  orden?: string
-}
-
-export default async function ProductosPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>
-}) {
-  const { q, categoria, orden } = await searchParams
-
-  const categories = await getCategories()
-  const category = categoria ? await getCategoryByHandle(categoria) : null
-
-  const products = await listProducts({
-    q,
-    categoryId: category?.id,
-    sort: (orden as ProductSort) || undefined,
-  })
+export default async function ProductosPage() {
+  const products = await listProducts({})
 
   return (
     <main className="flex-1">
@@ -33,24 +13,7 @@ export default async function ProductosPage({
             {products.length} artículos
           </p>
         </div>
-
-        <div className="mt-8">
-          <CatalogToolbar categories={categories} />
-        </div>
-
-        {products.length === 0 ? (
-          <p className="mt-16 text-zinc-mid">
-            {q || categoria
-              ? 'No hay productos que coincidan con tu búsqueda.'
-              : 'No hay productos disponibles. El drop llega pronto.'}
-          </p>
-        ) : (
-          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+        <CatalogClientPage products={products} />
       </div>
     </main>
   )

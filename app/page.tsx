@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { sdk } from '@/lib/medusa'
 import { getDefaultRegionId } from '@/lib/region'
-import { buttonPrimary, buttonSecondary } from '@/lib/ui'
+import { buttonPrimary } from '@/lib/ui'
 import ProductCard from './productos/ProductCard'
 
 const HERO_IMAGE = '/images/hero-drop.webp'
@@ -70,9 +70,6 @@ export default async function Home() {
             <div className="flex flex-wrap gap-4">
               <Link href="/productos" className={`${buttonPrimary} h-12 px-8`}>
                 Ver el drop
-              </Link>
-              <Link href="/registro" className={`${buttonSecondary} h-12 px-8`}>
-                Crear cuenta
               </Link>
             </div>
           </div>

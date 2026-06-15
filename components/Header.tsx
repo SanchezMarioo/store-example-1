@@ -4,11 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { HttpTypes } from '@medusajs/types'
-import { useCart } from '@/lib/cart-context'
-import { logoutAction } from '@/lib/auth-actions'
 
 type Props = {
-  isAuthenticated: boolean
   categories?: HttpTypes.StoreProductCategory[]
 }
 
@@ -17,26 +14,8 @@ const BAR_TEXT = 'ENVÍO 24/48H · DEVOLUCIONES 30 DÍAS · SIN TEMPORADAS. SOLO
 const navLink =
   'text-caption font-bold uppercase tracking-widest text-ink transition duration-150 hover:bg-acid'
 
-const mobileLink = 'font-display text-5xl uppercase tracking-tight text-bone transition duration-150 hover:text-acid'
-
-function BagIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  )
-}
+const mobileLink =
+  'font-display text-5xl uppercase tracking-tight text-bone transition duration-150 hover:text-acid'
 
 function MenuIcon() {
   return (
@@ -57,38 +36,12 @@ function CloseIcon() {
   )
 }
 
-function CartBadge({ count }: { count: number }) {
-  if (count === 0) return null
-  return (
-    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-acid px-1 text-[10px] font-bold leading-none text-ink">
-      {count > 99 ? '99+' : count}
-    </span>
-  )
-}
-
-export default function Header({ isAuthenticated, categories = [] }: Props) {
-  const { itemCount } = useCart()
+export default function Header({ categories = [] }: Props) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const linkClass = (href: string) =>
     `${navLink} ${pathname === href ? 'underline decoration-acid decoration-[3px] underline-offset-8' : ''}`
-
-  if (pathname === '/checkout') {
-    return (
-      <header className="sticky top-0 z-50 border-b-2 border-ink bg-cement/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-          <Link href="/" className="font-display text-2xl uppercase tracking-tight text-ink">
-            Grieta
-          </Link>
-          <span className="flex items-center gap-2 text-caption font-bold uppercase tracking-widest text-zinc-mid">
-            <LockIcon />
-            Pago seguro
-          </span>
-        </div>
-      </header>
-    )
-  }
 
   return (
     <>
@@ -105,7 +58,10 @@ export default function Header({ isAuthenticated, categories = [] }: Props) {
 
       <header className="sticky top-0 z-50 border-b-2 border-ink bg-cement/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-          <Link href="/" className="font-display text-2xl uppercase tracking-tight text-ink transition duration-150 hover:bg-acid">
+          <Link
+            href="/"
+            className="font-display text-2xl uppercase tracking-tight text-ink transition duration-150 hover:bg-acid"
+          >
             Grieta
           </Link>
 
@@ -137,35 +93,7 @@ export default function Header({ isAuthenticated, categories = [] }: Props) {
                   </div>
                 </div>
               )}
-              {isAuthenticated ? (
-                <>
-                  <Link href="/cuenta" className={linkClass('/cuenta')}>
-                    Mi cuenta
-                  </Link>
-                  <Link href="/pedidos" className={linkClass('/pedidos')}>
-                    Pedidos
-                  </Link>
-                  <form action={logoutAction}>
-                    <button type="submit" className="text-caption font-bold uppercase tracking-widest text-zinc-mid transition duration-150 hover:text-ink">
-                      Salir
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <Link href="/login" className={linkClass('/login')}>
-                  Iniciar sesión
-                </Link>
-              )}
             </div>
-
-            <Link
-              href="/carrito"
-              className="relative p-2 text-ink transition duration-150 hover:bg-acid"
-              aria-label={`Carrito, ${itemCount} artículos`}
-            >
-              <BagIcon />
-              <CartBadge count={itemCount} />
-            </Link>
 
             <button
               type="button"
@@ -181,7 +109,7 @@ export default function Header({ isAuthenticated, categories = [] }: Props) {
       </header>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-ink lg:hidden">
+        <div className="fixed inset-0 z-60 flex flex-col bg-ink lg:hidden">
           <div className="flex h-16 items-center justify-between border-b-2 border-line-dark px-4">
             <span className="font-display text-2xl uppercase tracking-tight text-bone">Grieta</span>
             <button
@@ -211,31 +139,7 @@ export default function Header({ isAuthenticated, categories = [] }: Props) {
                 ))}
               </div>
             )}
-            <Link href="/carrito" onClick={() => setMenuOpen(false)} className={mobileLink}>
-              Carrito{itemCount > 0 ? ` (${itemCount})` : ''}
-            </Link>
-            {isAuthenticated ? (
-              <>
-                <Link href="/cuenta" onClick={() => setMenuOpen(false)} className={mobileLink}>
-                  Mi cuenta
-                </Link>
-                <Link href="/pedidos" onClick={() => setMenuOpen(false)} className={mobileLink}>
-                  Pedidos
-                </Link>
-              </>
-            ) : (
-              <Link href="/login" onClick={() => setMenuOpen(false)} className={mobileLink}>
-                Iniciar sesión
-              </Link>
-            )}
           </nav>
-          {isAuthenticated && (
-            <form action={logoutAction} className="border-t-2 border-line-dark px-6 py-6">
-              <button type="submit" className="text-caption font-bold uppercase tracking-widest text-zinc-soft transition duration-150 hover:text-acid">
-                Cerrar sesión
-              </button>
-            </form>
-          )}
         </div>
       )}
     </>
