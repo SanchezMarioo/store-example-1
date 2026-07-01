@@ -41,7 +41,7 @@ export default async function CategoriaPage({
                 <div className="flex items-center gap-3">
                   <span className="h-2 w-10 bg-acid" />
                   <p className="text-caption font-bold uppercase tracking-widest text-zinc-mid">
-                    Categoria activa
+                    Categoría activa
                   </p>
                 </div>
 
