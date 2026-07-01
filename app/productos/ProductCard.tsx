@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { HttpTypes } from '@medusajs/types'
 import { useCart } from '@/lib/cart-context'
+import { getProductThumbnail } from '@/lib/product-image-overrides'
 
 type Props = {
   product: HttpTypes.StoreProduct
@@ -45,6 +46,7 @@ function resolveChips(product: HttpTypes.StoreProduct): Chip[] {
 export default function ProductCard({ product }: Props) {
   const { addItem, isLoading } = useCart()
   const [addedId, setAddedId] = useState<string | null>(null)
+  const thumbnail = getProductThumbnail(product)
 
   const chips = resolveChips(product)
 
@@ -68,9 +70,9 @@ export default function ProductCard({ product }: Props) {
       className="group flex flex-col transition duration-150 active:scale-[0.98]"
     >
       <div className="relative aspect-3/4 w-full overflow-hidden bg-cement-light">
-        {product.thumbnail ? (
+        {thumbnail ? (
           <Image
-            src={product.thumbnail}
+            src={thumbnail}
             alt={product.title ?? 'Producto'}
             fill
             sizes="(min-width: 1024px) 25vw, 50vw"

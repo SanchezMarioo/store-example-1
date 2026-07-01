@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
         hostname: "medusa-public-images.s3.eu-west-1.amazonaws.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
     ],
   },
 };

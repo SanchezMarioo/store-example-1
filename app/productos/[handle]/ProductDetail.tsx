@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { HttpTypes } from '@medusajs/types'
 import { useCart } from '@/lib/cart-context'
 import { buttonPrimary, labelCaption, spinnerSquare } from '@/lib/ui'
+import { getProductGallery } from '@/lib/product-image-overrides'
 
 type Props = {
   product: HttpTypes.StoreProduct
@@ -23,13 +24,7 @@ export default function ProductDetail({ product }: Props) {
   const [added, setAdded] = useState(false)
   const [optionError, setOptionError] = useState(false)
   const optionsRef = useRef<HTMLDivElement>(null)
-
-  const images =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.thumbnail
-        ? [{ id: 'thumbnail', url: product.thumbnail }]
-        : []
+  const images = getProductGallery(product)
 
   const hasOptions = (product.options?.length ?? 0) > 0
 

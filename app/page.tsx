@@ -1,15 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { sdk } from '@/lib/medusa'
-import { getDefaultRegionId } from '@/lib/region'
+import { HttpTypes } from '@medusajs/types'
+import { getCategories, listProducts } from '@/lib/catalog'
+import { getCategoryThumbnail } from '@/lib/category-image-overrides'
 import { buttonPrimary, buttonSecondary } from '@/lib/ui'
 import ProductCard from './productos/ProductCard'
 
 const HERO_IMAGE = '/images/hero-drop.webp'
 
 const BANNER_TEXT = 'SIN TEMPORADAS. SOLO DROPS. · '
-
-const CATEGORIES = ['Hombre', 'Mujer', 'Accesorios']
 
 const TRUST = [
   {
@@ -46,14 +45,21 @@ const TRUST = [
 ]
 
 export default async function Home() {
-  let products: Awaited<ReturnType<typeof sdk.store.product.list>>['products'] = []
+  let products: HttpTypes.StoreProduct[] = []
+  let categories: HttpTypes.StoreProductCategory[] = []
   try {
-    const regionId = await getDefaultRegionId()
-    const result = await sdk.store.product.list({ limit: 4, region_id: regionId })
-    products = result.products
+    products = await listProducts({ limit: 4 })
   } catch {
     products = []
   }
+
+  try {
+    categories = await getCategories()
+  } catch {
+    categories = []
+  }
+
+  const featuredCategories = categories.slice(0, 3)
 
   return (
     <main className="flex-1">
@@ -103,17 +109,41 @@ export default async function Home() {
       <section className="border-b-2 border-ink">
         <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-24">
           <div className="grid gap-4 sm:grid-cols-3">
-            {CATEGORIES.map((category) => (
-              <Link
-                key={category}
-                href="/productos"
-                className="group flex aspect-3/4 items-end border-2 border-ink p-6 transition duration-150 hover:bg-acid"
-              >
-                <span className="font-display text-3xl uppercase tracking-tight text-ink">
-                  {category}
-                </span>
-              </Link>
-            ))}
+            {featuredCategories.map((category) => {
+              const thumbnail = getCategoryThumbnail(category)
+
+              return (
+                <Link
+                  key={category.id}
+                  href={`/categorias/${category.handle}`}
+                  className="group relative flex aspect-3/4 overflow-hidden border-2 border-ink bg-cement-light transition duration-150 hover:-translate-y-1 hover:shadow-[8px_8px_0_0_#0e0e0e]"
+                >
+                  {thumbnail ? (
+                    <Image
+                      src={thumbnail}
+                      alt={category.name}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-linear-to-br from-cement-light via-cement to-zinc-300" />
+                  )}
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="relative z-10 flex w-full items-end p-6">
+                    <div className="flex flex-col gap-2">
+                      <span className="h-2 w-16 bg-acid" />
+                      <span className="font-display text-3xl uppercase tracking-tight text-bone">
+                        {category.name}
+                      </span>
+                      {category.description && (
+                        <span className="max-w-xs text-sm text-zinc-soft">{category.description}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </section>
