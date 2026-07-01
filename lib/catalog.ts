@@ -5,6 +5,7 @@ import { getDefaultRegionId } from './region'
 import { drop, Product as MockProduct } from './mock-drop'
 
 const DEMO_COLLECTION_HANDLE = 'asfalto-04'
+const DEMO_CATEGORY_TIMESTAMP = '2026-01-01T00:00:00.000Z'
 
 const DEMO_CATEGORIES: HttpTypes.StoreProductCategory[] = [
   {
@@ -12,14 +13,36 @@ const DEMO_CATEGORIES: HttpTypes.StoreProductCategory[] = [
     name: 'Hoodies',
     handle: 'hoodies',
     description: 'Capas pesadas y sudaderas de corte limpio.',
+    is_active: true,
+    is_internal: false,
+    rank: null,
+    external_id: null,
+    parent_category_id: null,
+    parent_category: null,
+    category_children: [],
+    products: [],
     metadata: { coverImage: '/images/hero-men.webp' },
+    created_at: DEMO_CATEGORY_TIMESTAMP,
+    updated_at: DEMO_CATEGORY_TIMESTAMP,
+    deleted_at: null,
   } as HttpTypes.StoreProductCategory,
   {
     id: 'cat-tees',
     name: 'Tees',
     handle: 'tees',
     description: 'Camisetas con gráfico y algodón compacto.',
+    is_active: true,
+    is_internal: false,
+    rank: null,
+    external_id: null,
+    parent_category_id: null,
+    parent_category: null,
+    category_children: [],
+    products: [],
     metadata: { coverImage: '/images/hero-woman.webp' },
+    created_at: DEMO_CATEGORY_TIMESTAMP,
+    updated_at: DEMO_CATEGORY_TIMESTAMP,
+    deleted_at: null,
   } as HttpTypes.StoreProductCategory,
 ]
 
